@@ -1,17 +1,20 @@
+#Libraries for this model
 #install.packages(c("fpp2", "quantmod"))
 
 library(fpp2)
 library(quantmod)
 
+#Data scrapping start date
 start = "2001-01-01"
 end   = Sys.Date()
 
+#RADL3.SA is Droga Raia (Example). You can use whatever you wish (assuming they exist in the data source you specify in src parameter)
 getSymbols("RADL3.SA", src = "yahoo", 
            from = start, 
            to = end,
            auto.assign=TRUE)
 
-# Plotando com a data
+# Plotting
 
 Cl(na.omit(RADL3.SA)) %>% 
   autoplot()+
@@ -23,7 +26,7 @@ class(RADL3.SA)
 head(RADL3.SA)
 tail(RADL3.SA)
 
-# Transformando em mês - usando a cotação de fechamento
+# Using daily close value for creating the model
 
 cot_mensal <- to.monthly(RADL3.SA$RADL3.SA.Close,
                          indexAt = "lastof",
@@ -35,9 +38,6 @@ tail(cot_mensal)
 
 class(cot_mensal)
 
-# embora já esteja em formato ts faremos a transformação
-# para o pacote fpp2
-
 cot.mensal <- na.omit(ts(cot_mensal))
 
 ggAcf(cot.mensal)
@@ -45,8 +45,6 @@ ggAcf(cot.mensal)
 ggPacf(cot.mensal)
 
 ndiffs(cot.mensal)
-
-#diferenciando
 
 diff.cot.mensal <- diff(cot.mensal)
 
@@ -59,10 +57,8 @@ grid.arrange(g1, g2, nrow =2)
 
 ggtsdisplay(diff.cot.mensal)
 
-# Efetuando o modelo AR(p)
 
-# Arima(p, d, q) onde p é originario do modelo AR(p), d = defasagem
-# q ? origin?rio do modelo MA(q)
+# Seasonal Arima(p, d, q) 
 
 (model_arima <- Arima(cot.mensal, order = c(0,1,0),seasonal = TRUE))
 
